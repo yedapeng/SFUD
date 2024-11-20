@@ -41,6 +41,7 @@
 |[W25Q128BV](http://www.winbond.com/resource-files/w25q128bv_revh_100313_wo_automotive.pdf)|Winbond|128Mb|104Mhz|支持|四线||
 |[W25Q256FV](http://www.winbond.com/resource-files/w25q256fv%20revi%2002262016%20kms.pdf)|Winbond|256Mb|104Mhz|支持|四线||
 |[MX25L3206E](http://www.macronix.com/Lists/DataSheet/Attachments/3199/MX25L3206E,%203V,%2032Mb,%20v1.5.pdf)|Macronix|32Mb|86MHz|支持|双线||
+|[MX25L3233F](https://www.macronix.com/Lists/Datasheet/Attachments/8754/MX25L3233F,%203V,%2032Mb,%20v1.7.pdf)|Macronix|32Mb|133MHz|支持|未测试|by [JiapengLi](https://github.com/JiapengLi)|
 |[KH25L4006E](http://www.macronix.com.hk/Lists/Datasheet/Attachments/117/KH25L4006E.pdf)|Macronix|4Mb|86Mhz|支持|未测试| by [JiapengLi](https://github.com/JiapengLi)|
 |[KH25L3206E](http://www.macronix.com.hk/Lists/Datasheet/Attachments/131/KH25L3206E.pdf)|Macronix|32Mb|86Mhz|支持|双线||
 |[SST25VF016B](http://ww1.microchip.com/downloads/en/DeviceDoc/20005044C.pdf)|Microchip|16Mb|50MHz|不支持|不支持| SST 已被 Microchip 收购|
@@ -49,6 +50,7 @@
 |[M25P32](https://www.micron.com/~/media/documents/products/data-sheet/nor-flash/serial-nor/m25p/m25p32.pdf)|Micron|32Mb|75Mhz|不支持|不支持||
 |[EN25Q32B](http://www.kean.com.au/oshw/WR703N/teardown/EN25Q32B%2032Mbit%20SPI%20Flash.pdf)|EON|32Mb|104MHz|不支持|未测试||
 |[GD25Q16B](http://www.gigadevice.com/product/detail/5/410.html)|GigaDevice|16Mb|120Mhz|不支持|未测试| by [TanekLiang](https://github.com/TanekLiang) |
+|[GD25Q32C](http://www.gigadevice.com/product/detail/5/410.html)|GigaDevice|32Mb|120Mhz|不支持|未测试| by [gaupen1186](https://github.com/gaupen1186) |
 |[GD25Q64B](http://www.gigadevice.com/product/detail/5/364.html)|GigaDevice|64Mb|120Mhz|不支持|双线||
 |[S25FL216K](http://www.cypress.com/file/197346/download)|Cypress|16Mb|65Mhz|不支持|双线||
 |[S25FL032P](http://www.cypress.com/file/196861/download)|Cypress|32Mb|104Mhz|不支持|未测试| by [yc_911](https://gitee.com/yc_911) |
@@ -58,10 +60,13 @@
 |[F25L004](http://www.esmt.com.tw/db/manager/upload/f25l004.pdf)|ESMT|4Mb|100Mhz|不支持|不支持||
 |[PCT25VF016B](http://pctgroup.com.tw/attachments/files/files/248_25VF016B-P.pdf)|PCT|16Mb|80Mhz|不支持|不支持|SST 授权许可，会被识别为 SST25VF016B|
 |[AT45DB161E](http://www.adestotech.com/wp-content/uploads/doc8782.pdf)|ADESTO|16Mb|85MHz|不支持|不支持|ADESTO 收购 Atmel 串行闪存产品线|
+|[NM25Q128EV](http://www.normem.com/product/278082170)|Nor_Mem|128Mb|未测试|不支持|未测试|SFDP可能会读取到信息后识别为超过32Gb|
+|[P25D40H](https://item.szlcsc.com/583103.html)|PUYA|4Mb|未测试|支持|未测试|by Shan|
+|[P25Q80H](https://item.szlcsc.com/8512446.html)|PUYA|8Mb|未测试|支持|未测试|by Shan|
 
 > 注：QSPI 模式中，双线表示支持双线快读，四线表示支持四线快读。
 >
-> 一般情况下，支持四线快读的 FLASH 也支持两线快读。
+> 一般情况下，支持四线快读的 FLASH 也支持双线快读。
 
 ### 2.2 API 说明
 
@@ -218,13 +223,19 @@ sfud_err sfud_write_status(const sfud_flash *flash, bool is_volatile, uint8_t st
 
 > 注意：关闭后只会查询该库在  `/sfud/inc/sfud_flash_def.h` 中提供的 Flash 信息表。这样虽然会降低软件的适配性，但减少代码量。
 
-#### 2.3.3 是否使用该库自带的 Flash 参数信息表
+#### 2.3.3 是否使用快速读模式（SPI模式）
+
+打开/关闭 `SFUD_USING_FAST_READ` 宏定义。许多Flash的读模式可能并不能满足较高的SPI频率（具体可查阅各Flash的数据手册交流特性部分），此时需要使能快速读模式。
+
+> 注意：由于快速读模式在读时插入了默认一个空字节，在SPI速率较慢时可能相较于读模式速度更慢。
+
+#### 2.3.4 是否使用该库自带的 Flash 参数信息表
 
 打开/关闭 `SFUD_USING_FLASH_INFO_TABLE` 宏定义
 
 > 注意：关闭后该库只驱动支持 SFDP 规范的 Flash，也会适当的降低部分代码量。另外 2.3.2 及 2.3.3 这两个宏定义至少定义一种，也可以两种方式都选择。
 
-#### 2.3.4 既不使用 SFDP ，也不使用 Flash 参数信息表
+#### 2.3.5 既不使用 SFDP ，也不使用 Flash 参数信息表
 
 为了进一步降低代码量，`SFUD_USING_SFDP` 与 `SFUD_USING_FLASH_INFO_TABLE` 也可以 **都不定义** 。
 
@@ -240,7 +251,7 @@ sfud_device_init(&sfud_norflash0);
 ......
 ```
 
-#### 2.3.5 Flash 设备表
+#### 2.3.6 Flash 设备表
 
 如果产品中存在多个 Flash ，可以添加 Flash 设备表。修改 `SFUD_FLASH_DEVICE_TABLE` 这个宏定义，示例如下：
 
@@ -259,7 +270,7 @@ enum {
 
 上面定义了两个 Flash 设备（大部分产品一个足以），两个设备的名称为 `"W25Q64CV"` 及 `"GD25Q64B"` ，分别对应 `"SPI1"` 及 `"SPI3"` 这两个 SPI 设备名称（在移植 SPI 接口时会用到，位于 `/sfud/port/sfud_port.c` ）， `SFUD_W25Q16CV_DEVICE_INDEX` 与 `SFUD_GD25Q64B_DEVICE_INDEX` 这两个枚举定义了两个设备位于设备表中的索引，可以通过 `sfud_get_device_table()` 方法获取到设备表，再配合这个索引值来访问指定的设备。
 
-#### 2.3.6 QSPI 模式
+#### 2.3.7 QSPI 模式
 
 打开/关闭 `SFUD_USING_QSPI` 宏定义
 
@@ -290,6 +301,7 @@ enum {
 |[/demo/stm32f10x_non_os](https://github.com/armink/SFUD/tree/master/demo/stm32f10x_non_os) |STM32F10X 裸机平台|
 |[/demo/stm32f2xx_rtt](https://github.com/armink/SFUD/tree/master/demo/stm32f2xx_rtt)  |STM32F2XX + [RT-Thread](http://www.rt-thread.org/) 操作系统平台|
 |[/demo/stm32l475_non_os_qspi](https://github.com/armink/SFUD/tree/master/demo/stm32l475_non_os_qspi) |STM32L475 + QSPI 模式 裸机平台|
+|/demo/esp32_ext_spi_flash |ESP32C3 + SPI外部Flash ESP-IDF框架|
 
 ### 2.7 许可
 

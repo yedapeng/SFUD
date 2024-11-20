@@ -33,19 +33,17 @@
 
 #define SFUD_USING_SFDP
 
-// #define SFUD_USING_FAST_READ
-
 #define SFUD_USING_FLASH_INFO_TABLE
 
 enum {
-    SFUD_XXXX_DEVICE_INDEX = 0,
+    SFUD_W25Q128_DEVICE_INDEX = 0,
 };
 
 #define SFUD_FLASH_DEVICE_TABLE                                                \
 {                                                                              \
-    [SFUD_XXXX_DEVICE_INDEX] = {.name = "XXXX", .spi.name = "SPIX"},           \
+    [SFUD_W25Q128_DEVICE_INDEX] = {.name = "W25Q128", .spi.name = "spi2"},           \
 }
 
-#define SFUD_USING_QSPI
+//#define SFUD_USING_QSPI
 
 #endif /* _SFUD_CFG_H_ */
